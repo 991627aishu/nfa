@@ -40,79 +40,39 @@ import { saveAs } from "file-saver";
 const steps = ['Fill Details', 'Configure Financial Table', 'Generate NFA with AI', 'Download'];
 
 function NfaAutomationForm({ onNfaGenerated }) {
-  const [formData, setFormData] = useState(() => {
-    // Load saved form data from localStorage on component mount
-    const saved = localStorage.getItem("nfaFormData");
-    
-    if (saved) {
-      try {
-        const parsedData = JSON.parse(saved);
-        // Check if the saved data has the old 'title' field and convert it
-        if (parsedData.title && !parsedData.subject) {
-          console.log("🔍 Converting old 'title' field to 'subject'");
-          parsedData.subject = parsedData.title;
-          delete parsedData.title;
-        }
-        // Ensure all required fields exist
-        return {
-          subject: parsedData.subject || "",
-          summary: parsedData.summary || "",
-          bulletsRequired: parsedData.bulletsRequired || false,
-          nfaType: parsedData.nfaType || "reimbursement",
-          proposalLines: parsedData.proposalLines || 3,
-          proposalBullets: parsedData.proposalBullets || 2,
-          proposalAddHeader: parsedData.proposalAddHeader !== undefined ? parsedData.proposalAddHeader : true,
-          proposalWordLimit: parsedData.proposalWordLimit || 150,
-          proposalCharLimit: parsedData.proposalCharLimit || 500,
-          backgroundLines: parsedData.backgroundLines || 3,
-          backgroundBullets: parsedData.backgroundBullets || 2,
-          backgroundAddHeader: parsedData.backgroundAddHeader !== undefined ? parsedData.backgroundAddHeader : true,
-          backgroundWordLimit: parsedData.backgroundWordLimit || 150,
-          backgroundCharLimit: parsedData.backgroundCharLimit || 500,
-          recommendationLines: parsedData.recommendationLines || 2,
-          recommendationBullets: parsedData.recommendationBullets || 1,
-          recommendationAddHeader: parsedData.recommendationAddHeader !== undefined ? parsedData.recommendationAddHeader : true,
-          recommendationWordLimit: parsedData.recommendationWordLimit || 100,
-          recommendationCharLimit: parsedData.recommendationCharLimit || 300,
-          tableHeaders: parsedData.tableHeaders || ["Item", "Quantity", "Unit Cost", "Total Cost"],
-          tableRows: parsedData.tableRows || [["Laptops", "10", "₹50,000", "₹5,00,000"], ["Software Licenses", "10", "₹10,000", "₹1,00,000"]]
-        };
-      } catch (error) {
-        console.error("Error parsing saved form data:", error);
-        // If parsing fails, start with default data
-      }
-    }
-    
-    // Default form data
-    return {
-      subject: "",
-      summary: "",
-      bulletsRequired: false,
-      nfaType: "reimbursement",
-      proposalLines: 3,
-      proposalBullets: 2,
-      proposalAddHeader: true,
-      proposalWordLimit: 150,
-      proposalCharLimit: 500,
-      backgroundLines: 3,
-      backgroundBullets: 2,
-      backgroundAddHeader: true,
-      backgroundWordLimit: 150,
-      backgroundCharLimit: 500,
-      recommendationLines: 2,
-      recommendationBullets: 1,
-      recommendationAddHeader: true,
-      recommendationWordLimit: 100,
-      recommendationCharLimit: 300,
-      tableHeaders: ["Item", "Quantity", "Unit Cost", "Total Cost"],
-      tableRows: [["Laptops", "10", "₹50,000", "₹5,00,000"], ["Software Licenses", "10", "₹10,000", "₹1,00,000"]]
-    };
+  const [formData, setFormData] = useState({
+    subject: "",
+    summary: "",
+    bulletsRequired: false,
+    nfaType: "reimbursement",
+    proposalLines: 3,
+    proposalBullets: 2,
+    proposalAddHeader: true,
+    proposalWordLimit: 150,
+    proposalCharLimit: 500,
+    backgroundLines: 3,
+    backgroundBullets: 2,
+    backgroundAddHeader: true,
+    backgroundWordLimit: 150,
+    backgroundCharLimit: 500,
+    recommendationLines: 2,
+    recommendationBullets: 1,
+    recommendationAddHeader: true,
+    recommendationWordLimit: 100,
+    recommendationCharLimit: 300,
+    tableHeaders: ["Item", "Quantity", "Unit Cost", "Total Cost"],
+    tableRows: [["Laptops", "10", "₹50,000", "₹5,00,000"], ["Software Licenses", "10", "₹10,000", "₹1,00,000"]]
   });
   const [downloadLink, setDownloadLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [activeStep, setActiveStep] = useState(0);
+
+  // Clear localStorage on component mount to remove any saved default values
+  useEffect(() => {
+    localStorage.removeItem("nfaFormData");
+  }, []);
   const [errors, setErrors] = useState({});
   const [generatedContent, setGeneratedContent] = useState("");
   const [showPreview, setShowPreview] = useState(false);
@@ -1178,9 +1138,6 @@ function NfaAutomationForm({ onNfaGenerated }) {
     };
     setFormData(newFormData);
 
-    // Save to localStorage for persistence
-    localStorage.setItem("nfaFormData", JSON.stringify(newFormData));
-
     // Clear validation error when user starts typing
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
@@ -1192,7 +1149,6 @@ function NfaAutomationForm({ onNfaGenerated }) {
     newHeaders[index] = value;
     const newFormData = { ...formData, tableHeaders: newHeaders };
     setFormData(newFormData);
-    localStorage.setItem("nfaFormData", JSON.stringify(newFormData));
   };
 
   const handleTableRowChange = (rowIndex, colIndex, value) => {
@@ -1200,7 +1156,6 @@ function NfaAutomationForm({ onNfaGenerated }) {
     newRows[rowIndex][colIndex] = value;
     const newFormData = { ...formData, tableRows: newRows };
     setFormData(newFormData);
-    localStorage.setItem("nfaFormData", JSON.stringify(newFormData));
   };
 
   const addTableRow = () => {
@@ -1210,14 +1165,12 @@ function NfaAutomationForm({ onNfaGenerated }) {
       tableRows: [...formData.tableRows, newRow] 
     };
     setFormData(newFormData);
-    localStorage.setItem("nfaFormData", JSON.stringify(newFormData));
   };
 
   const removeTableRow = (index) => {
     const newRows = formData.tableRows.filter((_, i) => i !== index);
     const newFormData = { ...formData, tableRows: newRows };
     setFormData(newFormData);
-    localStorage.setItem("nfaFormData", JSON.stringify(newFormData));
   };
 
   const addTableColumn = () => {
@@ -1225,7 +1178,6 @@ function NfaAutomationForm({ onNfaGenerated }) {
     const newRows = formData.tableRows.map(row => [...row, ""]);
     const newFormData = { ...formData, tableHeaders: newHeaders, tableRows: newRows };
     setFormData(newFormData);
-    localStorage.setItem("nfaFormData", JSON.stringify(newFormData));
   };
 
   const removeTableColumn = (index) => {
@@ -1233,7 +1185,6 @@ function NfaAutomationForm({ onNfaGenerated }) {
     const newRows = formData.tableRows.map(row => row.filter((_, i) => i !== index));
     const newFormData = { ...formData, tableHeaders: newHeaders, tableRows: newRows };
     setFormData(newFormData);
-    localStorage.setItem("nfaFormData", JSON.stringify(newFormData));
   };
   // Google Sheets Integration Functions
   const extractSheetIdFromUrl = (url) => {
@@ -1316,7 +1267,6 @@ function NfaAutomationForm({ onNfaGenerated }) {
     };
 
     setFormData(newFormData);
-    localStorage.setItem("nfaFormData", JSON.stringify(newFormData));
     setImportDialogOpen(false);
     setSheetsError("");
   };
@@ -1371,7 +1321,6 @@ function NfaAutomationForm({ onNfaGenerated }) {
           };
 
           setFormData(newFormData);
-          localStorage.setItem("nfaFormData", JSON.stringify(newFormData));
           setImportDialogOpen(false);
           setSheetsError("");
         }

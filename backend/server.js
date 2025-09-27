@@ -538,11 +538,540 @@ app.get("/api/test-python", (req, res) => {
   }
 });
 
+// ✅ Generate Job Recommendation Letter using Python script with fallback
+app.post("/api/generate-job-recommendation", (req, res) => {
+  console.log("📝 Generate Job Recommendation request received:", req.body);
+  
+  const { name, title, summary } = req.body;
+  
+  // Fallback response for generation mode
+  const createGenerationFallbackResponse = () => {
+    const fallbackContent = `Letter of Recommendation
+
+Dr. Phani Kumar Pullela
+Professor & Associate Dean
+RV University
+Email: phanikumarp@rvu.edu.in
+Phone: +91-9902005868
+
+Subject: Job Recommendation Letter for ${name}
+
+To Whomsoever It May Concern
+
+It is my privilege to recommend ${name}, who has consistently demonstrated dedication and expertise in their work. I have had the pleasure of mentoring ${name}, and their significant contributions to "${title}" have been truly commendable.
+
+${name} has demonstrated exceptional skills and dedication in their project '${title}'. ${summary}
+
+In addition to their technical expertise, ${name} has shown exceptional professionalism, teamwork, and the ability to manage complex tasks with precision. Their commitment to excellence makes them a standout individual who will undoubtedly excel in any professional endeavor.
+
+I am confident that ${name} will bring the same level of passion, innovation, and excellence to their future roles. Should you require additional information, please do not hesitate to contact me at +91-9902005868 or via email at phanikumarp@rvu.edu.in.
+
+Sincerely,
+
+Dr. Phani Kumar Pullela
+Professor & Associate Dean
+RV University`;
+
+    return {
+      success: true,
+      content: fallbackContent,
+      message: "Job recommendation letter generated successfully (fallback mode - Python unavailable)"
+    };
+  };
+  
+  try {
+    const pythonScript = path.join(__dirname, 'python', 'generate_job_reco.py');
+    const args = [name, title, summary];
+    
+    console.log("🐍 Running Python script for job recommendation:", pythonScript, "with args:", args);
+    
+    // Try different Python commands - prioritize 'python' on Windows
+    const pythonCommands = ['python', 'python3', 'py'];
+    let pythonProcess = null;
+    let pythonCommand = null;
+    
+    for (const cmd of pythonCommands) {
+      try {
+        pythonProcess = spawn(cmd, [pythonScript, ...args], {
+          cwd: __dirname,
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+        pythonCommand = cmd;
+        break;
+      } catch (error) {
+        console.log(`⚠️ ${cmd} not available for job recommendation, trying next...`);
+        continue;
+      }
+    }
+    
+    if (!pythonProcess) {
+      throw new Error('Python not found for job recommendation. Tried: python3, python, py');
+    }
+    
+    console.log(`🐍 Using Python command for job recommendation: ${pythonCommand}`);
+    
+    let stdout = '';
+    let stderr = '';
+    
+    pythonProcess.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+    
+    pythonProcess.on('close', (code) => {
+      console.log(`🐍 Python job recommendation script exited with code: ${code}`);
+      console.log("📤 Python stdout:", stdout);
+      console.log("📤 Python stderr:", stderr);
+      
+      if (code === 0) {
+        try {
+          // For job recommendation, we need to generate content and return it
+          const filePath = stdout.trim();
+          console.log("✅ Job recommendation file created:", filePath);
+          
+          // Generate the content that would be in the document (concise for single page)
+          const content = `Letter of Recommendation
+
+Dr. Phani Kumar Pullela
+Professor & Associate Dean
+RV University
+Email: phanikumarp@rvu.edu.in
+Phone: +91-9902005868
+
+Subject: Job Recommendation Letter for ${name}
+
+To Whomsoever It May Concern
+
+It is my privilege to recommend ${name}, who has consistently demonstrated dedication and expertise in their work. I have had the pleasure of mentoring ${name}, and their significant contributions to "${title}" have been truly commendable.
+
+${name} has demonstrated exceptional skills and dedication in their project '${title}'. ${summary}
+
+In addition to their technical expertise, ${name} has shown exceptional professionalism, teamwork, and the ability to manage complex tasks with precision. Their commitment to excellence makes them a standout individual who will undoubtedly excel in any professional endeavor.
+
+I am confident that ${name} will bring the same level of passion, innovation, and excellence to their future roles. Should you require additional information, please do not hesitate to contact me at +91-9902005868 or via email at phanikumarp@rvu.edu.in.
+
+Sincerely,
+
+Dr. Phani Kumar Pullela
+Professor & Associate Dean
+RV University`;
+
+          res.json({
+            success: true,
+            content: content,
+            message: "Job recommendation letter generated successfully",
+            filePath: filePath
+          });
+        } catch (parseError) {
+          console.error("❌ Error processing Python job recommendation output:", parseError);
+          res.status(500).json({ 
+            success: false, 
+            error: "Failed to process Python script output",
+            details: parseError.message 
+          });
+        }
+      } else {
+        console.error("❌ Python job recommendation script failed with code:", code);
+        console.log("🔄 Python job recommendation failed, trying fallback response...");
+        const fallbackResponse = createGenerationFallbackResponse();
+        res.json(fallbackResponse);
+      }
+    });
+    
+  } catch (error) {
+    console.error("❌ Error running Python job recommendation script:", error);
+    console.log("🔄 Python job recommendation error, trying fallback response...");
+    const fallbackResponse = createGenerationFallbackResponse();
+    res.json(fallbackResponse);
+  }
+});
+
+// ✅ Download Job Recommendation Letter using Python script with fallback
+app.post("/api/download-job-recommendation", (req, res) => {
+  console.log("📥 Download Job Recommendation request received:", req.body);
+  
+  const { name, title, summary, content } = req.body;
+  
+  try {
+    const pythonScript = path.join(__dirname, 'python', 'generate_job_reco.py');
+    const args = [name, title, summary];
+    
+    console.log("🐍 Running Python script for job recommendation download:", pythonScript, "with args:", args);
+    
+    // Try different Python commands - prioritize 'python' on Windows
+    const pythonCommands = ['python', 'python3', 'py'];
+    let pythonProcess = null;
+    let pythonCommand = null;
+    
+    for (const cmd of pythonCommands) {
+      try {
+        pythonProcess = spawn(cmd, [pythonScript, ...args], {
+          cwd: __dirname,
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+        pythonCommand = cmd;
+        break;
+      } catch (error) {
+        console.log(`⚠️ ${cmd} not available for job recommendation download, trying next...`);
+        continue;
+      }
+    }
+    
+    if (!pythonProcess) {
+      throw new Error('Python not found for job recommendation download. Tried: python3, python, py');
+    }
+    
+    console.log(`🐍 Using Python command for job recommendation download: ${pythonCommand}`);
+    
+    let stdout = '';
+    let stderr = '';
+    
+    pythonProcess.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+    
+    pythonProcess.on('close', (code) => {
+      console.log(`🐍 Python job recommendation download script exited with code: ${code}`);
+      console.log("📤 Python stdout:", stdout);
+      console.log("📤 Python stderr:", stderr);
+      
+      if (code === 0) {
+        try {
+          const filePath = stdout.trim();
+          const fullPath = path.join(__dirname, filePath);
+          
+          console.log("✅ Job recommendation file ready for download:", fullPath);
+          
+          // Check if file exists
+          if (fs.existsSync(fullPath)) {
+            res.download(fullPath, (err) => {
+              if (err) {
+                console.error("❌ Error downloading job recommendation file:", err);
+                res.status(500).json({ 
+                  success: false, 
+                  error: "Failed to download file",
+                  details: err.message 
+                });
+              } else {
+                console.log("✅ Job recommendation file downloaded successfully");
+              }
+            });
+          } else {
+            console.error("❌ Job recommendation file not found:", fullPath);
+            res.status(404).json({ 
+              success: false, 
+              error: "File not found",
+              details: "Generated file could not be located" 
+            });
+          }
+        } catch (parseError) {
+          console.error("❌ Error processing Python job recommendation download output:", parseError);
+          res.status(500).json({ 
+            success: false, 
+            error: "Failed to process Python script output",
+            details: parseError.message 
+          });
+        }
+      } else {
+        console.error("❌ Python job recommendation download script failed with code:", code);
+        res.status(500).json({ 
+          success: false, 
+          error: "Failed to generate job recommendation document",
+          details: "Python script execution failed" 
+        });
+      }
+    });
+    
+  } catch (error) {
+    console.error("❌ Error running Python job recommendation download script:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to generate job recommendation document",
+      details: error.message 
+    });
+  }
+});
+
+// ✅ Generate MS Recommendation Letter using Python script with fallback
+app.post("/api/generate-ms-recommendation", (req, res) => {
+  console.log("📝 Generate MS Recommendation request received:", req.body);
+  
+  const { name, title, summary } = req.body;
+  
+  // Fallback response for generation mode
+  const createGenerationFallbackResponse = () => {
+    const fallbackContent = `Letter of Recommendation
+
+Dr. Phani Kumar Pullela
+Professor & Associate Dean
+RV University
+Email: phanikumarp@rvu.edu.in
+Phone: +91-9902005868
+
+Subject: Recommendation Letter for ${name}
+
+To Whomsoever It May Concern
+
+I am writing to wholeheartedly recommend ${name} for admission to your esteemed Master's program. Having had the privilege of working closely with ${name} during their academic journey at RV University, I can confidently attest to their exceptional academic abilities, strong work ethic, and potential for success in graduate studies.
+
+Their significant contributions to "${title}" have been commendable. ${name} demonstrated remarkable dedication, analytical thinking, and problem-solving skills throughout the project. Their ability to work independently while also contributing effectively to team efforts has been impressive.
+
+${name} has demonstrated exceptional skills and dedication in their project '${title}'. ${summary}
+
+In summary, ${name} is a student of exceptional talent and dedication who would be a valuable addition to your Master's program. I have no doubt that they will excel in their graduate studies and make significant contributions to their field.
+
+Sincerely,
+Dr. Phani Kumar Pullela
+Professor & Associate Dean
+RV University`;
+
+    return {
+      success: true,
+      content: fallbackContent,
+      message: "MS recommendation letter generated successfully (fallback mode)"
+    };
+  };
+
+  try {
+    const pythonScript = path.join(__dirname, 'python', 'generate_ms_reco.py');
+    const args = [name, title, summary];
+    
+    console.log("🐍 Running Python script for MS recommendation generation:", pythonScript, "with args:", args);
+    
+    // Try different Python commands - prioritize 'python' on Windows
+    const pythonCommands = ['python', 'python3', 'py'];
+    let pythonProcess = null;
+    let pythonCommand = null;
+    
+    for (const cmd of pythonCommands) {
+      try {
+        pythonProcess = spawn(cmd, [pythonScript, ...args], {
+          cwd: __dirname,
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+        pythonCommand = cmd;
+        console.log(`✅ Successfully started Python process with command: ${cmd}`);
+        break;
+      } catch (error) {
+        console.log(`❌ Failed to start Python process with command: ${cmd}`, error.message);
+        continue;
+      }
+    }
+    
+    if (!pythonProcess) {
+      console.error("❌ Failed to start Python process with any command");
+      const fallbackResponse = createGenerationFallbackResponse();
+      return res.json(fallbackResponse);
+    }
+    
+    let output = '';
+    let errorOutput = '';
+    
+    pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+      console.log('📤 Python stdout:', data.toString());
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+      console.log('⚠️ Python stderr:', data.toString());
+    });
+    
+    pythonProcess.on('close', (code) => {
+      console.log(`🐍 Python process exited with code: ${code}`);
+      
+      if (code === 0 && output.trim()) {
+        console.log("✅ Python script completed successfully");
+        
+        // For generation mode, we get the file path from Python output but generate our own content
+        const filePath = output.trim();
+        console.log("✅ MS recommendation file created:", filePath);
+        
+        // Generate the content that would be in the document
+        const content = `Letter of Recommendation
+
+Dr. Phani Kumar Pullela
+Professor & Associate Dean
+RV University
+Email: phanikumarp@rvu.edu.in
+Phone: +91-9902005868
+
+Subject: Recommendation Letter for ${name}
+
+To Whomsoever It May Concern
+
+I am writing to wholeheartedly recommend ${name} for admission to your esteemed Master's program. Having had the privilege of working closely with ${name} during their academic journey at RV University, I can confidently attest to their exceptional academic abilities, strong work ethic, and potential for success in graduate studies.
+
+Their significant contributions to "${title}" have been commendable. ${name} demonstrated remarkable dedication, analytical thinking, and problem-solving skills throughout the project. Their ability to work independently while also contributing effectively to team efforts has been impressive.
+
+${name} has demonstrated exceptional skills and dedication in their project '${title}'. ${summary}
+
+In summary, ${name} is a student of exceptional talent and dedication who would be a valuable addition to your Master's program. I have no doubt that they will excel in their graduate studies and make significant contributions to their field.
+
+Sincerely,
+Dr. Phani Kumar Pullela
+Professor & Associate Dean
+RV University`;
+        
+        res.json({
+          success: true,
+          content: content,
+          message: "MS recommendation letter generated successfully"
+        });
+      } else {
+        console.error("❌ Python script failed or produced no output");
+        console.error("Error output:", errorOutput);
+        
+        // Return fallback response
+        const fallbackResponse = createGenerationFallbackResponse();
+        res.json(fallbackResponse);
+      }
+    });
+    
+    pythonProcess.on('error', (error) => {
+      console.error("❌ Error running Python MS recommendation generation script:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to generate MS recommendation letter",
+        details: error.message 
+      });
+    });
+    
+  } catch (error) {
+    console.error("❌ Error running Python MS recommendation generation script:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to generate MS recommendation letter",
+      details: error.message 
+    });
+  }
+});
+
+// ✅ Download MS Recommendation Letter using Python script with fallback
+app.post("/api/download-ms-recommendation", (req, res) => {
+  console.log("📥 Download MS Recommendation request received:", req.body);
+  
+  const { name, title, summary, content } = req.body;
+  
+  try {
+    const pythonScript = path.join(__dirname, 'python', 'generate_ms_reco.py');
+    const args = [name, title, summary];
+    
+    console.log("🐍 Running Python script for MS recommendation download:", pythonScript, "with args:", args);
+    
+    // Try different Python commands - prioritize 'python' on Windows
+    const pythonCommands = ['python', 'python3', 'py'];
+    let pythonProcess = null;
+    let pythonCommand = null;
+    
+    for (const cmd of pythonCommands) {
+      try {
+        pythonProcess = spawn(cmd, [pythonScript, ...args], {
+          cwd: __dirname,
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+        pythonCommand = cmd;
+        console.log(`✅ Successfully started Python process with command: ${cmd}`);
+        break;
+      } catch (error) {
+        console.log(`❌ Failed to start Python process with command: ${cmd}`, error.message);
+        continue;
+      }
+    }
+    
+    if (!pythonProcess) {
+      console.error("❌ Failed to start Python process with any command");
+      return res.status(500).json({ 
+        success: false, 
+        error: "Failed to generate MS recommendation document" 
+      });
+    }
+    
+    let output = '';
+    let errorOutput = '';
+    
+    pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+      console.log('📤 Python stdout:', data.toString());
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+      console.log('⚠️ Python stderr:', data.toString());
+    });
+    
+    pythonProcess.on('close', (code) => {
+      console.log(`🐍 Python process exited with code: ${code}`);
+      
+      if (code === 0 && output.trim()) {
+        console.log("✅ Python script completed successfully");
+        
+        // For download mode, we expect the script to output the file path
+        const filePath = output.trim();
+        console.log("📁 Generated file path:", filePath);
+        
+        const fullPath = path.join(__dirname, filePath);
+        console.log("📁 Full file path:", fullPath);
+        
+        if (fs.existsSync(fullPath)) {
+          console.log("✅ File exists, sending to client");
+          res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+          res.setHeader('Content-Disposition', `attachment; filename="MS_Recommendation_Letter_${name.replace(/\s+/g, '_')}.docx"`);
+          
+          const fileStream = fs.createReadStream(fullPath);
+          fileStream.pipe(res);
+        } else {
+          console.error("❌ Generated file does not exist:", fullPath);
+          res.status(500).json({ 
+            success: false, 
+            error: "Generated file not found",
+            filePath: fullPath
+          });
+        }
+      } else {
+        console.error("❌ Python script failed or produced no output");
+        console.error("Error output:", errorOutput);
+        res.status(500).json({ 
+          success: false, 
+          error: "Failed to generate MS recommendation document",
+          details: errorOutput
+        });
+      }
+    });
+    
+    pythonProcess.on('error', (error) => {
+      console.error("❌ Error running Python MS recommendation download script:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to generate MS recommendation document",
+        details: error.message 
+      });
+    });
+    
+  } catch (error) {
+    console.error("❌ Error running Python MS recommendation download script:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to generate MS recommendation document",
+      details: error.message 
+    });
+  }
+});
+
 // Start server with port conflict handling
 const server = app.listen(PORT, () => {
   console.log(`✅ Backend server running on http://localhost:${PORT}`);
   console.log(`📁 Serving static files from: ${path.join(__dirname, 'downloads')}`);
   console.log(`🐍 Python script location: ${path.join(__dirname, 'python', 'generate_nfa_automation.py')}`);
+  console.log(`🐍 Job recommendation script location: ${path.join(__dirname, 'python', 'generate_job_reco.py')}`);
+  console.log(`🐍 MS recommendation script location: ${path.join(__dirname, 'python', 'generate_ms_reco.py')}`);
 });
 
 server.on('error', (error) => {

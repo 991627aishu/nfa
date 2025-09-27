@@ -140,6 +140,32 @@ const SectionPage = () => {
     { title: 'Download Final NFA', type: 'Action', icon: '⬇️' }
   ]
 },
+    'ms-recommendation': {
+      title: 'MS Recommendation Letter',
+      subtitle: 'Graduate School Applications',
+      icon: '🎓',
+      color: 'from-indigo-500 to-indigo-600',
+      items: [
+        { title: 'Student Information Form', type: 'Form', icon: '📝' },
+        { title: 'Academic Achievements', type: 'Details', icon: '🏆' },
+        { title: 'Target Universities', type: 'List', icon: '🎯' },
+        { title: 'AI-Generated Letter', type: 'Document', icon: '🤖' },
+        { title: 'Download Letter', type: 'Action', icon: '⬇️' }
+      ]
+    },
+    'job-recommendation': {
+      title: 'Job Recommendation Letter',
+      subtitle: 'Career Opportunities',
+      icon: '💼',
+      color: 'from-emerald-500 to-emerald-600',
+      items: [
+        { title: 'Professional Information', type: 'Form', icon: '📝' },
+        { title: 'Work Experience', type: 'Details', icon: '💼' },
+        { title: 'Target Companies', type: 'List', icon: '🏢' },
+        { title: 'AI-Generated Letter', type: 'Document', icon: '🤖' },
+        { title: 'Download Letter', type: 'Action', icon: '⬇️' }
+      ]
+    },
   };
 
   const section = sectionData[sectionId];

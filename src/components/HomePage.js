@@ -68,11 +68,29 @@ const HomePage = () => {
       icon: '📝',
       color: 'from-yellow-400 to-yellow-600'
     },
+    {
+      id: 'ms-recommendation',
+      title: 'MS Recommendation Letter',
+      subtitle: 'Graduate School Applications',
+      icon: '🎓',
+      color: 'from-indigo-500 to-indigo-600'
+    },
+    {
+      id: 'job-recommendation',
+      title: 'Job Recommendation Letter',
+      subtitle: 'Career Opportunities',
+      icon: '💼',
+      color: 'from-emerald-500 to-emerald-600'
+    },
   ];
 
   const handleSectionClick = (sectionId) => {
     if (sectionId === 'note-for-approval') {
       navigate('/nfa-landing');  // 👉 Go to NFA Landing Page first
+    } else if (sectionId === 'ms-recommendation') {
+      navigate('/ms-recommendation-landing');  // 👉 Go to MS Recommendation Landing Page
+    } else if (sectionId === 'job-recommendation') {
+      navigate('/job-recommendation-landing');  // 👉 Go to Job Recommendation Landing Page
     } else {
       navigate(`/section/${sectionId}`);
     }

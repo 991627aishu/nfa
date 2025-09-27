@@ -92,7 +92,7 @@ Need Bullets: {need_bullets}
 REQUIRED OUTPUT FORMAT (MUST FOLLOW EXACT TEMPLATE WITH EXCELLENT STRUCTURE):
 {subject}
 
-Request for approval regarding [specific details from summary]. [Context sentence about the event/request]. [Objective or benefit sentence]."""
+Request for approval regarding [specific details from summary]. [Brief context or objective sentence]."""
 
     # Add bullet points only if user requested them
     if need_bullets:
@@ -107,7 +107,7 @@ Request for approval regarding [specific details from summary]. [Context sentenc
 CRITICAL REQUIREMENTS FOR EXCELLENT CONTENT:
 1. First line: ONLY "{subject}" (no prefixes like "Subject:")
 2. Empty line
-3. Request paragraph: EXACTLY 2-3 SHORT sentences starting with "Request for approval regarding" (CONCISE but complete)
+3. Request paragraph: EXACTLY 2-3 SHORT sentences starting with "Request for approval regarding" (VERY CONCISE - maximum 3 sentences total)
 4. Empty line"""
     
     if need_bullets:
@@ -122,13 +122,13 @@ CRITICAL REQUIREMENTS FOR EXCELLENT CONTENT:
     
     prompt += f"""
 9. Use ONLY user's summary content - NO generic text
-10. CONCISE for STRICT single page limit - KEEP PARAGRAPHS TO 2-3 SENTENCES
+10. VERY CONCISE for STRICT single page limit - KEEP STARTING PARAGRAPH TO MAXIMUM 3 SENTENCES TOTAL
 11. No conclusion paragraph (will be added separately)
 12. No markdown formatting
 13. Make content EXCELLENT and specific to user's summary only
 14. Generate EXCELLENT content based on user inputs
 15. Make it professional and specific to the request
-16. BALANCED CONCISENESS - 2-3 sentences per paragraph - complete but brief
+16. MAXIMUM CONCISENESS - starting paragraph MUST be maximum 3 sentences total - very brief
 17. EXCELLENT STRUCTURE - well-organized but SHORT paragraphs and bullet points
 18. PERFECT ALIGNMENT with user's subject and summary
 19. For bullet points: Extract specific details from the summary like names, dates, locations, objectives, participants, or unique aspects of the request
@@ -142,7 +142,7 @@ Generate ULTRA-CONCISE, EXCELLENT, specific content based ONLY on the user's sum
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are an EXCELLENT professional NFA writer who creates concise, single-page documents with PERFECT structure. Always generate EXCELLENT, specific content based ONLY on user inputs with 2-3 sentence paragraphs. For bullet points, extract specific details from the summary like names, dates, locations, objectives, participants, or unique aspects of the request. Make bullet points actionable and informative, not generic. Create well-structured paragraphs with 2-3 sentences each, bullet points, and conclusions that perfectly align with the user's subject and summary. Balanced conciseness required - KEEP PARAGRAPHS TO 2-3 SENTENCES."},
+                {"role": "system", "content": "You are an EXCELLENT professional NFA writer who creates very concise, single-page documents with PERFECT structure. Always generate EXCELLENT, specific content based ONLY on user inputs with VERY SHORT starting paragraphs (maximum 3 sentences total). For bullet points, extract specific details from the summary like names, dates, locations, objectives, participants, or unique aspects of the request. Make bullet points actionable and informative, not generic. Create well-structured content with very brief starting paragraphs, bullet points, and conclusions that perfectly align with the user's subject and summary. MAXIMUM conciseness required - KEEP STARTING PARAGRAPH TO MAXIMUM 3 SENTENCES TOTAL."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=150,  # Increased slightly for better bullet point generation

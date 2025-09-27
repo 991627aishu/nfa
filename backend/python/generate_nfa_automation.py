@@ -73,7 +73,7 @@ Need Bullets: {need_bullets}
 REQUIRED OUTPUT FORMAT (MUST FOLLOW EXACT TEMPLATE WITH EXCELLENT STRUCTURE):
 {subject}
 
-Request for approval regarding [specific details from summary]. [Context sentence]. [Objective sentence]."""
+Request for approval regarding [specific details from summary]. [Brief context or objective sentence]."""
 
     # Add bullet points only if user requested them
     if need_bullets:
@@ -97,7 +97,7 @@ QUALITY BENCHMARKS - SURPASS THESE EXAMPLES:
 PROFESSIONAL DOCUMENT STRUCTURE REQUIREMENTS:
 1. First line: "Subject: {subject}" (with "Subject:" prefix)
 2. Empty line
-3. Request paragraph: Create an EXCEPTIONAL 4-5 line paragraph starting with "Request for approval regarding" that SURPASSES standard NFA documents:
+3. Request paragraph: Create an EXCEPTIONAL 2-3 sentence paragraph starting with "Request for approval regarding" that SURPASSES standard NFA documents:
    - ABSOLUTE grammatical perfection with advanced syntax and sophisticated sentence construction
    - Superior vocabulary that demonstrates linguistic mastery and academic excellence
    - Unique, creative phrasing that elevates content beyond conventional business writing
@@ -125,13 +125,13 @@ PROFESSIONAL DOCUMENT STRUCTURE REQUIREMENTS:
     prompt += f"""
 GRAMMAR AND WRITING EXCELLENCE REQUIREMENTS:
 9. Demonstrate MASTERY of the user's specific context: Subject: "{subject}", Summary: "{summary}", NFA Type: "{nfa_type}"
-10. CONCISE for STRICT single page limit - KEEP PARAGRAPHS TO 2-3 SENTENCES while maintaining GRAMMATICAL PERFECTION
+10. VERY CONCISE for STRICT single page limit - KEEP STARTING PARAGRAPH TO MAXIMUM 3 SENTENCES TOTAL while maintaining GRAMMATICAL PERFECTION
 11. DO NOT include any conclusion statements - conclusion will be added separately after table
 12. No markdown formatting - pure text only
 13. Create content with FLAWLESS GRAMMAR, perfect syntax, and sophisticated vocabulary
 14. Every sentence must demonstrate linguistic mastery and deep understanding
 15. Use UNIQUE PHRASING that avoids clichés and generic expressions
-16. BALANCED CONCISENESS with MAXIMUM IMPACT - 2-3 sentences per paragraph
+16. MAXIMUM CONCISENESS with MAXIMUM IMPACT - starting paragraph MUST be maximum 3 sentences total
 17. STRUCTURAL EXCELLENCE - perfectly organized, logical flow, professional presentation
 18. CONTEXTUAL PERFECTION - content must be specifically tailored to this exact request
 19. GRAMMATICAL RIGOR - demonstrate scholarly approach to language and writing
@@ -144,10 +144,10 @@ FINAL INSTRUCTION: Generate content that demonstrates the work of an EXCEPTIONAL
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a WORLD-CLASS English Professor and Professional Writer with exceptional expertise in creating superior NFA documents. Your writing surpasses standard business documents and demonstrates MASTERFUL command of language, sophisticated expression, and unparalleled grammatical precision.\n\nSUPERIOR WRITING EXCELLENCE:\n- ABSOLUTE grammatical perfection with flawless syntax, punctuation, and sentence construction\n- Advanced vocabulary with sophisticated word choices that demonstrate linguistic mastery\n- Unique, creative phrasing that elevates content beyond conventional business writing\n- Perfect subject-verb agreement, tense consistency, and advanced sentence structures\n- Seamless transitions and eloquent flow that creates compelling narratives\n- Professional tone that commands respect while maintaining accessibility\n\nCONTENT CREATION MASTERY:\n- Craft compelling 2-3 sentence opening paragraphs that are sophisticated yet concise\n- Generate EXCEPTIONAL bullet points that demonstrate deep understanding and superior articulation\n- Create content that is contextually perfect, professionally sophisticated, and grammatically impeccable\n- Use advanced sentence structures including complex-compound sentences, sophisticated clauses, and elegant modifiers\n- Demonstrate expertise through precise, articulate language that exceeds typical business communication\n\nADVANCED WRITING REQUIREMENTS:\n- Elevate professional tone to demonstrate institutional excellence and academic sophistication\n- Employ sophisticated vocabulary including advanced academic and professional terminology\n- Create unique expressions that avoid clichés and demonstrate creative linguistic mastery\n- Ensure every sentence showcases superior writing ability and professional expertise\n- Generate content that is more polished, articulate, and sophisticated than standard NFA documents\n\nSTRUCTURAL PERFECTION:\n- DO NOT include conclusion statements (will be added separately)\n- Create opening paragraphs that are more compelling and sophisticated than typical business documents\n- Generate bullet points that demonstrate superior understanding and exceptional articulation\n- Ensure every element showcases writing mastery and professional excellence\n- Maintain the highest standards of academic and professional communication"},
+                {"role": "system", "content": "You are a WORLD-CLASS English Professor and Professional Writer with exceptional expertise in creating superior NFA documents. Your writing surpasses standard business documents and demonstrates MASTERFUL command of language, sophisticated expression, and unparalleled grammatical precision.\n\nSUPERIOR WRITING EXCELLENCE:\n- ABSOLUTE grammatical perfection with flawless syntax, punctuation, and sentence construction\n- Advanced vocabulary with sophisticated word choices that demonstrate linguistic mastery\n- Unique, creative phrasing that elevates content beyond conventional business writing\n- Perfect subject-verb agreement, tense consistency, and advanced sentence structures\n- Seamless transitions and eloquent flow that creates compelling narratives\n- Professional tone that commands respect while maintaining accessibility\n\nCONTENT CREATION MASTERY:\n- Craft compelling opening paragraphs with maximum 3 sentences total that are sophisticated yet very concise\n- Generate EXCEPTIONAL bullet points that demonstrate deep understanding and superior articulation\n- Create content that is contextually perfect, professionally sophisticated, and grammatically impeccable\n- Use advanced sentence structures including complex-compound sentences, sophisticated clauses, and elegant modifiers\n- Demonstrate expertise through precise, articulate language that exceeds typical business communication\n\nADVANCED WRITING REQUIREMENTS:\n- Elevate professional tone to demonstrate institutional excellence and academic sophistication\n- Employ sophisticated vocabulary including advanced academic and professional terminology\n- Create unique expressions that avoid clichés and demonstrate creative linguistic mastery\n- Ensure every sentence showcases superior writing ability and professional expertise\n- Generate content that is more polished, articulate, and sophisticated than standard NFA documents\n\nSTRUCTURAL PERFECTION:\n- DO NOT include conclusion statements (will be added separately)\n- Create opening paragraphs that are more compelling and sophisticated than typical business documents\n- Generate bullet points that demonstrate superior understanding and exceptional articulation\n- Ensure every element showcases writing mastery and professional excellence\n- Maintain the highest standards of academic and professional communication"},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=400,  # Balanced for 2-3 sentence paragraphs and exceptional bullet points
+            max_tokens=300,  # Reduced for very concise 3-sentence maximum starting paragraphs
             temperature=0.5  # Higher for more creative and sophisticated writing styles
         )
         
@@ -803,7 +803,7 @@ CRITICAL REQUIREMENTS:
 4. Preserve all justified alignment and STRICT single page format
 5. Ensure the document remains professional and formal
 6. Do not regenerate the entire document - only apply the specific requested changes
-7. Keep content CONCISE to maintain single page limit - 2-3 SENTENCES PER PARAGRAPH
+7. Keep content VERY CONCISE to maintain single page limit - STARTING PARAGRAPH MAXIMUM 3 SENTENCES TOTAL
 8. Return the complete modified NFA document with minimal changes
 9. Preserve the strict template structure:
    - Subject line (no "Subject:" prefix)
@@ -823,7 +823,7 @@ Return the complete modified NFA document with the requested changes applied.
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are an EXCELLENT professional NFA editor who applies specific modifications to existing documents while maintaining their PERFECT structure and format. Always keep changes minimal and preserve single page format. Create EXCELLENT, well-structured content with 2-3 sentence paragraphs that perfectly aligns with the user's subject and summary. CONCISE editing with EXCELLENCE required - KEEP PARAGRAPHS TO 2-3 SENTENCES."},
+                {"role": "system", "content": "You are an EXCELLENT professional NFA editor who applies specific modifications to existing documents while maintaining their PERFECT structure and format. Always keep changes minimal and preserve single page format. Create EXCELLENT, well-structured content with very brief starting paragraphs (maximum 3 sentences total) that perfectly aligns with the user's subject and summary. VERY CONCISE editing with EXCELLENCE required - KEEP STARTING PARAGRAPH TO MAXIMUM 3 SENTENCES TOTAL."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=200,  # Reduced for single page edits
