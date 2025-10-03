@@ -20,7 +20,7 @@ app.use('/downloads', express.static(path.join(__dirname, 'downloads'), {
   }
 }));
 
-app.use('/generated_letters', express.static(path.join(__dirname, 'generated_letters'), {
+app.use('/generated_letters', express.static(path.join(__dirname, 'uploads', 'generated_letters'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.docx')) {
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
@@ -29,9 +29,135 @@ app.use('/generated_letters', express.static(path.join(__dirname, 'generated_let
   }
 }));
 
+// Serve uploads folder (for header.png, signatures, etc.)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.png') || filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/' + path.extname(filePath).substring(1));
+    }
+  }
+}));
+
+// Serve static files from the main directory (for HTML files)
+app.use(express.static(path.join(__dirname, '..')));
+
+// Serve the NFA document generator HTML file
+app.get('/nfa-document-generator.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'nfa-document-generator.html'));
+});
+
+// Serve the test server HTML file
+app.get('/test-server.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'test-server.html'));
+});
+
 // ✅ Health check route
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Backend is healthy 🚀" });
+});
+
+// ✅ NFA Generation API endpoint
+app.post("/api/generate-nfa", async (req, res) => {
+  console.log("📝 NFA Generation API called");
+  
+  try {
+    const { subject, summary, nfaType, needBullets, tableData } = req.body;
+    
+    console.log("📝 NFA Generation inputs:", { subject, summary, nfaType, needBullets, tableData });
+    
+    if (!subject || !summary) {
+      return res.status(400).json({
+        success: false,
+        error: "Subject and summary are required"
+      });
+    }
+    
+    // Prepare Python script arguments
+    const pythonScript = path.join(__dirname, 'python', 'generate_nfa_automation_fixed.py');
+    const bulletsArg = needBullets ? 'yes' : 'no';
+    const tableDataJson = JSON.stringify(tableData || []);
+    
+    const args = [pythonScript, subject, summary, nfaType, bulletsArg, tableDataJson];
+    
+    console.log("🐍 Running Python script with args:", args);
+    
+    // Try different Python commands
+    const pythonCommands = ['python', 'python3', 'py'];
+    let pythonProcess = null;
+    let pythonCommand = null;
+    
+    for (const cmd of pythonCommands) {
+      try {
+        pythonProcess = spawn(cmd, args, {
+          cwd: __dirname,
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+        pythonCommand = cmd;
+        break;
+      } catch (error) {
+        console.log(`❌ Failed to spawn with ${cmd}:`, error.message);
+        continue;
+      }
+    }
+    
+    if (!pythonProcess) {
+      throw new Error('Could not spawn Python process with any command');
+    }
+    
+    console.log(`✅ Python process spawned with command: ${pythonCommand}`);
+    
+    let stdout = '';
+    let stderr = '';
+    
+    pythonProcess.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+    
+    pythonProcess.on('close', (code) => {
+      console.log(`🐍 Python process exited with code: ${code}`);
+      console.log(`📤 Python stdout: ${stdout}`);
+      console.log(`📤 Python stderr: ${stderr}`);
+      
+      if (code === 0) {
+        try {
+          const result = JSON.parse(stdout);
+          console.log("✅ NFA generation successful:", result);
+          res.json(result);
+        } catch (parseError) {
+          console.error("❌ Failed to parse Python output:", parseError);
+          res.status(500).json({
+            success: false,
+            error: "Failed to parse Python script output"
+          });
+        }
+      } else {
+        console.error("❌ Python script failed with code:", code);
+        res.status(500).json({
+          success: false,
+          error: `Python script failed: ${stderr || 'Unknown error'}`
+        });
+      }
+    });
+    
+    pythonProcess.on('error', (error) => {
+      console.error("❌ Python process error:", error);
+      res.status(500).json({
+        success: false,
+        error: `Python process error: ${error.message}`
+      });
+    });
+    
+  } catch (error) {
+    console.error("❌ NFA generation API error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
 
 // ✅ Python test route
@@ -113,160 +239,6 @@ app.get("/api/test-python", (req, res) => {
       error: "Failed to test Python",
       details: error.message
     });
-  }
-});
-
-// ✅ Generate NFA using Python script with fallback
-app.post("/api/generate-nfa", (req, res) => {
-  console.log("📩 Generate NFA request received:", req.body);
-  
-  const { subject, summary, nfaType, bulletsRequired, needBullets, tableData } = req.body;
-  
-  // Fallback response when Python fails
-  const createFallbackResponse = () => {
-    let basicContent = `Subject: ${subject || "NFA Request"}
-
-Request for approval regarding ${summary || "NFA Request Summary"}. This proposal requires administrative approval and proper coordination for successful execution.`;
-
-    // Add bullet points if requested
-    if (bulletsRequired || needBullets) {
-      basicContent += `
-
-• The event will promote community engagement and collaboration among participants
-• Proper administrative procedures will be followed for event coordination
-• All necessary approvals and permissions will be obtained before proceeding`;
-    }
-
-    basicContent += `
-
-The above proposal is submitted for approval, and the amount may kindly be reimbursed to the organizing committee after the event upon submission of the online report, receipts, and GST bills.`;
-
-    return {
-      success: true,
-      message: "NFA generated successfully (fallback mode - Python unavailable)",
-      nfa_text: basicContent,
-      nfaText: basicContent,
-      file: null
-    };
-  };
-  
-  try {
-    // Prepare arguments for Python script
-    const pythonScript = path.join(__dirname, 'python', 'generate_nfa_automation.py');
-    const args = [
-      subject || "NFA Request",
-      summary || "NFA Request Summary", 
-      nfaType || "reimbursement",
-      (bulletsRequired || needBullets) ? "yes" : "no",
-      JSON.stringify(tableData || [])
-    ];
-    
-    console.log("🐍 Running Python script:", pythonScript, "with args:", args);
-    
-    // Try different Python commands - prioritize 'python' on Windows
-    const pythonCommands = ['python', 'python3', 'py'];
-    let pythonProcess = null;
-    let pythonCommand = null;
-    
-    for (const cmd of pythonCommands) {
-      try {
-        pythonProcess = spawn(cmd, [pythonScript, ...args], {
-          cwd: __dirname,
-          stdio: ['pipe', 'pipe', 'pipe']
-        });
-        pythonCommand = cmd;
-        break;
-      } catch (error) {
-        console.log(`⚠️ ${cmd} not available, trying next...`);
-        continue;
-      }
-    }
-    
-    if (!pythonProcess) {
-      throw new Error('Python not found. Tried: python3, python, py');
-    }
-    
-    console.log(`🐍 Using Python command: ${pythonCommand}`);
-    
-    let stdout = '';
-    let stderr = '';
-    
-    pythonProcess.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-    
-    pythonProcess.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    pythonProcess.on('close', (code) => {
-      console.log(`🐍 Python process exited with code ${code}`);
-      console.log("📤 Python stdout:", stdout);
-      console.log("📤 Python stderr:", stderr);
-      
-      if (code === 0) {
-        try {
-          // Handle empty stdout
-          if (!stdout || stdout.trim() === '') {
-            console.error("❌ Python script returned empty output");
-            res.status(500).json({ 
-              success: false, 
-              error: "Python script returned empty output",
-              details: "Script executed but produced no output"
-            });
-            return;
-          }
-          
-          const result = JSON.parse(stdout);
-          console.log("✅ Python script success:", result);
-          res.json(result);
-        } catch (parseError) {
-          console.error("❌ Error parsing Python output:", parseError);
-          console.error("❌ Raw stdout was:", stdout);
-          res.status(500).json({ 
-            success: false, 
-            error: "Failed to parse Python script output",
-            details: `Parse error: ${parseError.message}. Raw output: ${stdout.substring(0, 200)}`
-          });
-        }
-      } else {
-        console.error("❌ Python script failed with code:", code);
-        console.error("❌ Full stderr:", stderr);
-        
-        // Try to provide more helpful error messages
-        let errorMessage = "Python script execution failed";
-        let errorDetails = stderr || "Unknown error";
-        
-        if (stderr.includes("ModuleNotFoundError")) {
-          errorMessage = "Python dependencies missing";
-          errorDetails = "Please install required Python packages: pip install openai python-docx python-dotenv";
-        } else if (stderr.includes("PermissionError")) {
-          errorMessage = "Python file permission error";
-          errorDetails = "Check file permissions for Python script";
-        } else if (stderr.includes("FileNotFoundError")) {
-          errorMessage = "Python file not found";
-          errorDetails = "Python script file is missing";
-        }
-        
-        // Try fallback response instead of failing
-        console.log("🔄 Python failed, trying fallback response...");
-        const fallbackResponse = createFallbackResponse();
-        res.json(fallbackResponse);
-      }
-    });
-    
-    pythonProcess.on('error', (error) => {
-      console.error("❌ Python process error:", error);
-      console.log("🔄 Python process failed, trying fallback response...");
-      const fallbackResponse = createFallbackResponse();
-      res.json(fallbackResponse);
-    });
-    
-  } catch (error) {
-    console.error("❌ Error running Python script:", error);
-    console.log("🔄 Python script error, trying fallback response...");
-    const fallbackResponse = createFallbackResponse();
-    res.json(fallbackResponse);
   }
 });
 
@@ -490,51 +462,6 @@ app.post("/api/download-edited-nfa", (req, res) => {
     console.log("🔄 Python download error, trying fallback response...");
     const fallbackResponse = createDownloadFallbackResponse();
     res.json(fallbackResponse);
-  }
-});
-// ✅ Test Python script
-app.get("/api/test-python", (req, res) => {
-  console.log("🧪 Testing Python script...");
-  
-  try {
-    const pythonScript = path.join(__dirname, 'python', 'generate_nfa_automation.py');
-    
-    const pythonProcess = spawn('python', [pythonScript, '--help'], {
-      cwd: __dirname,
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-    
-    let stdout = '';
-    let stderr = '';
-    
-    pythonProcess.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-    
-    pythonProcess.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    pythonProcess.on('close', (code) => {
-      console.log(`🐍 Python test process exited with code ${code}`);
-      
-      res.json({
-        success: code === 0,
-        code: code,
-        stdout: stdout,
-        stderr: stderr,
-        scriptPath: pythonScript,
-        scriptExists: fs.existsSync(pythonScript)
-      });
-    });
-    
-  } catch (error) {
-    console.error("❌ Error testing Python script:", error);
-    res.status(500).json({ 
-      success: false, 
-      error: "Failed to test Python script",
-      details: error.message 
-    });
   }
 });
 

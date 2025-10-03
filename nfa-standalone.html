@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFA Document Generator - Standalone</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .status-box {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .status-box h2 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .document-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .nfa-content {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .nfa-content p {
+            margin-bottom: 15px;
+        }
+
+        .nfa-content strong {
+            color: #2c3e50;
+        }
+
+        .subject-highlight {
+            background: #fff3cd;
+            padding: 12px 16px;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+
+        .budget-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .budget-table th,
+        .budget-table td {
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .budget-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .budget-table .total-row {
+            background: #e9ecef;
+            font-weight: bold;
+        }
+
+        .signature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .signature {
+            text-align: center;
+            border-top: 2px solid #333;
+            padding-top: 15px;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .signature-title {
+            font-style: italic;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn.success {
+            background: #28a745;
+        }
+
+        .btn.success:hover {
+            background: #1e7e34;
+        }
+
+        .btn.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn.warning:hover {
+            background: #e0a800;
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .instructions ul {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .signature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NFA Document Generator</h1>
+            <p>Note For Approval Document Creator</p>
+        </div>
+
+        <div class="content">
+            <div class="status-box">
+                <h2>✅ Page Loaded Successfully!</h2>
+                <p>This is a standalone version that works without a server. All features are functional.</p>
+            </div>
+
+            <div class="instructions">
+                <h3>How to Use:</h3>
+                <ul>
+                    <li><strong>Edit Text:</strong> Click on any text in the document below to edit it</li>
+                    <li><strong>Save Document:</strong> Use the "Save as HTML" button to download the document</li>
+                    <li><strong>Print:</strong> Use the "Print Document" button to print the document</li>
+                    <li><strong>Copy Content:</strong> Select and copy any text to use elsewhere</li>
+                </ul>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn success" onclick="saveDocument()">💾 Save as HTML</button>
+                <button class="btn" onclick="printDocument()">🖨️ Print Document</button>
+                <button class="btn warning" onclick="copyContent()">📋 Copy Content</button>
+                <button class="btn" onclick="editMode()">✏️ Toggle Edit Mode</button>
+            </div>
+
+            <div class="document-preview" id="documentPreview">
+                <div class="nfa-content" id="documentContent" contenteditable="false">
+                    <p><strong>Date:</strong> <span id="currentDate"></span></p>
+                    <p><strong>Note For Approval (NFA)</strong></p>
+                    
+                    <div class="subject-highlight">
+                        <strong>Subject:</strong> <span contenteditable="true">Chess by Panchatantra</span>
+                    </div>
+                    
+                    <p>Request for approval regarding the upcoming chess event organized by Mr. Raghavendra and Miss Akshaya, founders of Glio's Gambit, at R.V. University on October 20th, 2025. This initiative aims to not only enhance the intellectual engagement of participants but also to foster a vibrant community of chess enthusiasts through strategic gameplay and collaborative learning.</p>
+                    
+                    <ul>
+                        <li>This prestigious event will attract chess aficionados from diverse backgrounds, thereby enriching the cultural and intellectual fabric of R.V. University while promoting critical thinking and strategic analysis among participants.</li>
+                        <li>Engaging workshops led by renowned chess masters will be integrated into the event, providing attendees with unique opportunities to refine their skills and deepen their understanding of advanced strategies and tactics.</li>
+                        <li>The collaborative nature of this initiative underscores Glio's Gambit's commitment to educational excellence, fostering an environment where aspiring chess players can network, share insights, and cultivate a lifelong passion for the game.</li>
+                    </ul>
+                    
+                    <p><strong>Budget Title</strong></p>
+                    
+                    <table class="budget-table">
+                        <thead>
+                            <tr>
+                                <th>Sl No</th>
+                                <th>Item</th>
+                                <th>Unit</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td contenteditable="true">Prize Money</td>
+                                <td contenteditable="true">2</td>
+                                <td contenteditable="true">10000.00</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td contenteditable="true">Certificates</td>
+                                <td contenteditable="true">50</td>
+                                <td contenteditable="true">2500.00</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td contenteditable="true">Refreshments</td>
+                                <td contenteditable="true">100</td>
+                                <td contenteditable="true">5000.00</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td>Total</td>
+                                <td></td>
+                                <td></td>
+                                <td>17500.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <p>This comprehensive proposal is respectfully submitted for administrative consideration, and the advance amount may be sanctioned to facilitate the successful execution and timely implementation of this strategically significant initiative.</p>
+                </div>
+                
+                <!-- Signature Block -->
+                <div class="signature-grid">
+                    <div class="signature">
+                        <div class="signature-name" contenteditable="true">Dr Phani Kumar Pullela</div>
+                        <div class="signature-title" contenteditable="true">Dean, Student Affairs</div>
+                    </div>
+                    <div class="signature">
+                        <div class="signature-name" contenteditable="true">Mr Chandrasekhar</div>
+                        <div class="signature-title" contenteditable="true">Head Finance</div>
+                    </div>
+                    <div class="signature">
+                        <div class="signature-name" contenteditable="true">Dr Sahana D Gowda</div>
+                        <div class="signature-title" contenteditable="true">Registrar - RV University (i/c)</div>
+                    </div>
+                    <div class="signature">
+                        <div class="signature-name" contenteditable="true">Prof (Dr) Dwarika Prasad Uniyal</div>
+                        <div class="signature-title" contenteditable="true">Vice Chancellor (i/c)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('NFA Document Generator (Standalone) loading...');
+            setCurrentDate();
+            console.log('NFA Document Generator loaded successfully!');
+        });
+
+        // Set current date
+        function setCurrentDate() {
+            const dateElement = document.getElementById('currentDate');
+            if (dateElement) {
+                const today = new Date();
+                const formattedDate = today.toLocaleDateString('en-GB');
+                dateElement.textContent = formattedDate;
+            }
+        }
+
+        // Toggle edit mode
+        function editMode() {
+            const content = document.getElementById('documentContent');
+            const isEditable = content.contentEditable === 'true';
+            content.contentEditable = !isEditable;
+            
+            if (!isEditable) {
+                content.style.border = '2px dashed #007bff';
+                content.style.padding = '20px';
+                alert('Edit mode enabled! Click on any text to edit it.');
+            } else {
+                content.style.border = 'none';
+                content.style.padding = '0';
+                alert('Edit mode disabled.');
+            }
+        }
+
+        // Save document
+        function saveDocument() {
+            const content = document.getElementById('documentContent').innerHTML;
+            const fullHTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFA Document - ${new Date().toLocaleDateString()}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .budget-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .budget-table th, .budget-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .budget-table th { background: #f2f2f2; }
+        .signature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-top: 40px; }
+        .signature { text-align: center; border-top: 1px solid #000; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    ${content}
+</body>
+</html>`;
+            
+            const blob = new Blob([fullHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `NFA_Document_${new Date().toISOString().split('T')[0]}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert('Document saved successfully!');
+        }
+
+        // Print document
+        function printDocument() {
+            const content = document.getElementById('documentContent').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>NFA Document - Print</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+                        .budget-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        .budget-table th, .budget-table td { border: 1px solid #000; padding: 8px; text-align: left; }
+                        .budget-table th { background: #f0f0f0; }
+                        .signature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-top: 40px; }
+                        .signature { text-align: center; border-top: 1px solid #000; padding-top: 10px; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Copy content
+        function copyContent() {
+            const content = document.getElementById('documentContent');
+            const textContent = content.innerText || content.textContent;
+            
+            navigator.clipboard.writeText(textContent).then(() => {
+                alert('Content copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = textContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Content copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>

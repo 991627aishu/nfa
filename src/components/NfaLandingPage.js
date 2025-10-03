@@ -12,6 +12,11 @@ const NfaLandingPage = () => {
     navigate('/nfa-form');
   };
 
+  const handleOpenSplitPanel = () => {
+    // Open the split-panel HTML file in a new tab
+    window.open('/nfa-document-generator.html', '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50 to-orange-100 relative overflow-hidden">
       {/* Background Elements */}
@@ -75,7 +80,7 @@ const NfaLandingPage = () => {
         </div>
 
         {/* Action Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-20">
           {/* Create New NFA Card */}
           <div
             onClick={handleCreateNew}
@@ -142,6 +147,41 @@ const NfaLandingPage = () => {
                   <span>View History</span>
                   <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Split Panel NFA Generator Card */}
+          <div
+            onClick={handleOpenSplitPanel}
+            className="group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 cursor-pointer hover:bg-white/90 transition-all duration-500 transform hover:-translate-y-4 hover:scale-105 shadow-xl hover:shadow-2xl border border-white/20 overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="relative z-10">
+              <div className="text-center">
+                <div className="relative inline-block mb-8">
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-lg">
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="absolute -inset-2 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-30 blur-lg transition-opacity duration-500"></div>
+                </div>
+                
+                <h3 className="text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-600 transition-colors duration-300">
+                  Split Panel Generator
+                </h3>
+                
+                <p className="text-gray-600 mb-8 leading-relaxed">
+                  Advanced NFA generator with AI assistant chat panel. Create documents with real-time AI assistance, interactive tables, and formula support.
+                </p>
+                
+                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-8 py-4 rounded-xl font-semibold group-hover:from-purple-600 group-hover:to-pink-700 transition-all duration-300 shadow-lg group-hover:shadow-xl">
+                  <span>Open Generator</span>
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
                 </div>
               </div>

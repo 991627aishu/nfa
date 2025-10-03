@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFA Document Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 20px;
+            min-height: 80vh;
+        }
+
+        .sidebar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .document-area {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 800px;
+        }
+
+        .chat-area {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 0;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn.primary {
+            background: #27ae60;
+        }
+
+        .btn.primary:hover {
+            background: #229954;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+
+        .nfa-content {
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .nfa-content p {
+            margin-bottom: 15px;
+        }
+
+        .nfa-content strong {
+            color: #2c3e50;
+        }
+
+        .subject-highlight {
+            background: #fff3cd;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 4px solid #ffc107;
+            margin: 10px 0;
+        }
+
+        .budget-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+
+        .budget-table th,
+        .budget-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .budget-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .budget-table .total-row {
+            background: #e9ecef;
+            font-weight: bold;
+        }
+
+        .signature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .signature {
+            text-align: center;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .signature-title {
+            font-style: italic;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 10px;
+            resize: vertical;
+        }
+
+        .message {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .message.user {
+            background: #4caf50;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar, .chat-area {
+                order: 2;
+            }
+            
+            .document-area {
+                order: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NFA Document Generator</h1>
+            <p>Create and edit Note For Approval documents</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <div class="section-title">File Operations</div>
+                <button class="btn primary" onclick="saveDocument()">💾 Save Document</button>
+                <button class="btn" onclick="exportPDF()">📄 Export PDF</button>
+                <button class="btn" onclick="printDocument()">🖨️ Print</button>
+
+                <div class="section-title">Text Formatting</div>
+                <button class="btn" onclick="formatText('bold')">Bold</button>
+                <button class="btn" onclick="formatText('italic')">Italic</button>
+                <button class="btn" onclick="formatText('underline')">Underline</button>
+
+                <div class="section-title">Insert Elements</div>
+                <button class="btn" onclick="insertTable()">📊 Insert Table</button>
+                <button class="btn" onclick="insertImage()">🖼️ Insert Image</button>
+                <button class="btn" onclick="insertList()">📝 Insert List</button>
+            </div>
+
+            <!-- Main Document Area -->
+            <div class="document-area">
+                <div class="nfa-content" id="documentContent" contenteditable="true">
+                    <p><strong>Date:</strong> <span id="currentDate"></span></p>
+                    <p><strong>Note For Approval (NFA)</strong></p>
+                    
+                    <div class="subject-highlight">
+                        <strong>Subject:</strong> <span contenteditable="true">Chess by Panchatantra</span>
+                    </div>
+                    
+                    <p>Request for approval regarding the upcoming chess event organized by Mr. Raghavendra and Miss Akshaya, founders of Glio's Gambit, at R.V. University on October 20th, 2025. This initiative aims to not only enhance the intellectual engagement of participants but also to foster a vibrant community of chess enthusiasts through strategic gameplay and collaborative learning.</p>
+                    
+                    <ul>
+                        <li>This prestigious event will attract chess aficionados from diverse backgrounds, thereby enriching the cultural and intellectual fabric of R.V. University while promoting critical thinking and strategic analysis among participants.</li>
+                        <li>Engaging workshops led by renowned chess masters will be integrated into the event, providing attendees with unique opportunities to refine their skills and deepen their understanding of advanced strategies and tactics.</li>
+                        <li>The collaborative nature of this initiative underscores Glio's Gambit's commitment to educational excellence, fostering an environment where aspiring chess players can network, share insights, and cultivate a lifelong passion for the game.</li>
+                    </ul>
+                    
+                    <p><strong>Budget Title</strong></p>
+                    
+                    <table class="budget-table" id="budgetTable">
+                        <thead>
+                            <tr>
+                                <th>Sl No</th>
+                                <th>Item</th>
+                                <th>Unit</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td>1</td>
+                                <td contenteditable="true">Prize Money</td>
+                                <td contenteditable="true">2</td>
+                                <td contenteditable="true">10000.00</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td contenteditable="true">Certificates</td>
+                                <td contenteditable="true">50</td>
+                                <td contenteditable="true">2500.00</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td contenteditable="true">Refreshments</td>
+                                <td contenteditable="true">100</td>
+                                <td contenteditable="true">5000.00</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td>Total</td>
+                                <td></td>
+                                <td></td>
+                                <td>17500.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <p>This comprehensive proposal is respectfully submitted for administrative consideration, and the advance amount may be sanctioned to facilitate the successful execution and timely implementation of this strategically significant initiative.</p>
+                </div>
+                
+                <!-- Signature Block -->
+                <div class="signature-grid">
+                    <div class="signature">
+                        <div class="signature-name" contenteditable="true">Dr Phani Kumar Pullela</div>
+                        <div class="signature-title" contenteditable="true">Dean, Student Affairs</div>
+                    </div>
+                    <div class="signature">
+                        <div class="signature-name" contenteditable="true">Mr Chandrasekhar</div>
+                        <div class="signature-title" contenteditable="true">Head Finance</div>
+                    </div>
+                    <div class="signature">
+                        <div class="signature-name" contenteditable="true">Dr Sahana D Gowda</div>
+                        <div class="signature-title" contenteditable="true">Registrar - RV University (i/c)</div>
+                    </div>
+                    <div class="signature">
+                        <div class="signature-name" contenteditable="true">Prof (Dr) Dwarika Prasad Uniyal</div>
+                        <div class="signature-title" contenteditable="true">Vice Chancellor (i/c)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Chat Area -->
+            <div class="chat-area">
+                <div class="section-title">AI Assistant</div>
+                <div id="chatMessages">
+                    <div class="message">
+                        <p>Hello! I'm your AI assistant. I can help you edit the NFA document. You can ask me to:</p>
+                        <ul>
+                            <li>Change any text content</li>
+                            <li>Modify the subject line</li>
+                            <li>Update signature names or titles</li>
+                            <li>Edit table data</li>
+                            <li>Format the document</li>
+                        </ul>
+                        <p>Just tell me what you'd like to change!</p>
+                    </div>
+                </div>
+                
+                <textarea class="chat-input" id="chatInput" placeholder="Ask me to edit the document..." rows="3"></textarea>
+                <button class="btn" onclick="sendMessage()">Send Message</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('NFA Document Generator loading...');
+            setCurrentDate();
+            console.log('NFA Document Generator loaded successfully!');
+        });
+
+        // Set current date
+        function setCurrentDate() {
+            const dateElement = document.getElementById('currentDate');
+            if (dateElement) {
+                const today = new Date();
+                const formattedDate = today.toLocaleDateString('en-GB');
+                dateElement.textContent = formattedDate;
+            }
+        }
+
+        // Text formatting functions
+        function formatText(command) {
+            document.execCommand(command, false, null);
+            document.getElementById('documentContent').focus();
+        }
+
+        // File operations
+        function saveDocument() {
+            const content = document.getElementById('documentContent').innerHTML;
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'nfa-document.html';
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('Document saved successfully!');
+        }
+
+        function exportPDF() {
+            alert('PDF export feature coming soon!');
+        }
+
+        function printDocument() {
+            window.print();
+        }
+
+        // Insert functions
+        function insertTable() {
+            alert('Table insertion feature - use the existing table or add rows manually');
+        }
+
+        function insertImage() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        
+                        const selection = window.getSelection();
+                        if (selection.rangeCount > 0) {
+                            const range = selection.getRangeAt(0);
+                            range.deleteContents();
+                            range.insertNode(img);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        }
+
+        function insertList() {
+            const listType = confirm('Create numbered list? (OK for numbered, Cancel for bulleted)');
+            formatText(listType ? 'insertOrderedList' : 'insertUnorderedList');
+        }
+
+        // Chat functionality
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Simple AI response
+            setTimeout(() => {
+                const response = generateResponse(message);
+                addMessage(response, 'assistant');
+            }, 1000);
+        }
+
+        function addMessage(content, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = `<p>${content}</p>`;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function generateResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+            
+            if (message.includes('subject') && (message.includes('change') || message.includes('update'))) {
+                return 'I can help you change the subject. Please click on the subject text in the document and edit it directly.';
+            }
+            
+            if (message.includes('date') && (message.includes('change') || message.includes('update'))) {
+                return 'I can help you change the date. Please click on the date in the document and edit it directly.';
+            }
+            
+            if (message.includes('signature') || message.includes('dean') || message.includes('finance')) {
+                return 'I can help you update signatures. Please click on any signature name or title in the document and edit it directly.';
+            }
+            
+            if (message.includes('table') || message.includes('budget')) {
+                return 'I can help you with the table. Please click on any cell in the budget table and edit the values directly.';
+            }
+            
+            if (message.includes('help')) {
+                return 'I can help you edit the NFA document. You can directly click and edit any text in the document. For specific changes, just tell me what you want to modify!';
+            }
+            
+            return 'I understand you want to make changes. You can directly click and edit any text in the document. For specific help, just ask me what you want to change!';
+        }
+
+        // Allow Enter key in chat
+        document.getElementById('chatInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
