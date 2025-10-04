@@ -1,11 +1,84 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { spawn } = require("child_process");
+const { spawn, exec } = require("child_process");
 const fs = require("fs");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000; // Fixed port 5000
+
+// Function to kill processes on specific ports (Windows)
+function killProcessOnPort(port) {
+  return new Promise((resolve) => {
+    console.log(`🔍 Checking for processes on port ${port}...`);
+    
+    // Use netstat to find processes using the port
+    exec(`netstat -ano | findstr :${port}`, (error, stdout, stderr) => {
+      if (error) {
+        console.log(`✅ No processes found on port ${port}`);
+        resolve();
+        return;
+      }
+      
+      const lines = stdout.trim().split('\n');
+      const pids = new Set();
+      
+      lines.forEach(line => {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 5 && parts[1].includes(`:${port}`)) {
+          const pid = parts[parts.length - 1];
+          if (pid && pid !== '0') {
+            pids.add(pid);
+          }
+        }
+      });
+      
+      if (pids.size === 0) {
+        console.log(`✅ No processes found on port ${port}`);
+        resolve();
+        return;
+      }
+      
+      console.log(`⚠️ Found ${pids.size} process(es) on port ${port}. Killing...`);
+      
+      let killed = 0;
+      pids.forEach(pid => {
+        exec(`taskkill /F /PID ${pid}`, (killError) => {
+          if (killError) {
+            console.log(`⚠️ Could not kill process ${pid}: ${killError.message}`);
+          } else {
+            console.log(`✅ Killed process ${pid}`);
+          }
+          killed++;
+          if (killed === pids.size) {
+            console.log(`✅ Finished cleaning port ${port}`);
+            resolve();
+          }
+        });
+      });
+    });
+  });
+}
+
+// Kill processes on ports before starting
+async function startServer() {
+  try {
+    await killProcessOnPort(5000);
+    await killProcessOnPort(3002);
+    
+    console.log('🚀 Starting backend server...');
+    server.listen(PORT, () => {
+      console.log(`✅ Backend server running on http://localhost:${PORT}`);
+      console.log(`📁 Serving static files from: ${path.join(__dirname, 'downloads')}`);
+      console.log(`🐍 Python script location: ${path.join(__dirname, 'python', 'generate_nfa_automation.py')}`);
+      console.log(`🐍 Job recommendation script location: ${path.join(__dirname, 'python', 'generate_job_reco.py')}`);
+      console.log(`🐍 MS recommendation script location: ${path.join(__dirname, 'python', 'generate_ms_reco.py')}`);
+    });
+  } catch (error) {
+    console.error('❌ Error starting server:', error);
+    process.exit(1);
+  }
+}
 
 app.use(cors());
 app.use(express.json());
@@ -992,31 +1065,14 @@ app.post("/api/download-ms-recommendation", (req, res) => {
   }
 });
 
-// Start server with port conflict handling
-const server = app.listen(PORT, () => {
-  console.log(`✅ Backend server running on http://localhost:${PORT}`);
-  console.log(`📁 Serving static files from: ${path.join(__dirname, 'downloads')}`);
-  console.log(`🐍 Python script location: ${path.join(__dirname, 'python', 'generate_nfa_automation.py')}`);
-  console.log(`🐍 Job recommendation script location: ${path.join(__dirname, 'python', 'generate_job_reco.py')}`);
-  console.log(`🐍 MS recommendation script location: ${path.join(__dirname, 'python', 'generate_ms_reco.py')}`);
+// Create server instance
+const server = require('http').createServer(app);
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('❌ Server error:', error);
+  process.exit(1);
 });
 
-server.on('error', (error) => {
-  if (error.code === 'EADDRINUSE') {
-    console.log(`❌ Port ${PORT} is already in use. Trying port ${PORT + 1}...`);
-    const newPort = PORT + 1;
-    const newServer = app.listen(newPort, () => {
-      console.log(`✅ Backend server running on http://localhost:${newPort}`);
-      console.log(`📁 Serving static files from: ${path.join(__dirname, 'downloads')}`);
-      console.log(`🐍 Python script location: ${path.join(__dirname, 'python', 'generate_nfa_automation.py')}`);
-    });
-    
-    newServer.on('error', (newError) => {
-      console.error('❌ Failed to start server on any port:', newError);
-      process.exit(1);
-    });
-  } else {
-    console.error('❌ Server error:', error);
-    process.exit(1);
-  }
-});
+// Start the server with port killing
+startServer();
